@@ -1,0 +1,12 @@
+version: '3.1'
+
+services:
+  discord_forward:
+    build: .
+    image: discord-forward
+    container_name: discord-forward
+    volumes:
+      - /mnt/cache_primary/appdata/discord-forward:/usr/src/app
+    environment:
+      - NODE_ENV=production
+    command: "node bot.js"

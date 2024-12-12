@@ -1,0 +1,9 @@
+{
+    "token": "DISCORD_TOKEN",
+    "webhook": "WEBHOOK_URL",
+    "source_channels": ["CHANNEL_ID1", "CHANNEL_ID2"],
+    "thread_id": "THREAD_ID",
+    "destination_role_id": "REWRITE_ROLE_ID",
+    "post_last_message_on_startup": 0,
+    "use_thread": 0
+}
