@@ -77,9 +77,11 @@ async function forwardMessage(message, isEdit = false) {
     try {
         let content = message.content ? message.content : '';
 
-        // Replace any role mention with the destination role mention
-        const roleMentionRegex = /<@&\d+>/g;
-        content = content.replace(roleMentionRegex, `<@&${DESTINATION_ROLE_ID}>`);
+        // Replace any role mention with the destination role mention (only for new messages)
+        if (!isEdit) {
+            const roleMentionRegex = /<@&\d+>/g;
+            content = content.replace(roleMentionRegex, `<@&${DESTINATION_ROLE_ID}>`);
+        }
 
         // Include embed details if available
         if (message.embeds.length > 0) {
@@ -116,11 +118,13 @@ async function forwardMessage(message, isEdit = false) {
                 content: chunk,
                 username: message.author.username,
                 avatar_url: message.author.displayAvatarURL({ format: 'png', dynamic: true }),
-                allowed_mentions: {
-                    parse: [], // Do not parse @everyone or @here
-                    roles: [DESTINATION_ROLE_ID], // Allow mentioning only the specific destination role
-                    users: [] // No user mentions
-                },
+                allowed_mentions: isEdit
+                    ? { parse: [] } // Suppress all mentions on edits
+                    : {
+                        parse: [], // Do not parse @everyone or @here
+                        roles: [DESTINATION_ROLE_ID], // Allow mentioning only the specific destination role
+                        users: [] // No user mentions
+                    },
                 embeds: imageUrls.map(url => ({
                     image: { url } // Attach images as embeds
                 }))
