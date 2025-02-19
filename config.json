@@ -5,5 +5,8 @@
     "thread_id": "THREAD_ID",
     "destination_role_id": "REWRITE_ROLE_ID",
     "post_last_message_on_startup": 0,
-    "use_thread": 0
+    "use_thread": 0,
+    "monitor_mode": 0,
+    "keywords": ["enter", "your", "keywords", "here"],
+    "alert_role_id": "ALERT_ROLE_ID"
 }

@@ -5,6 +5,7 @@ Forward messages from one server to another
 - Detect and forward message edits with an `[Edited]` prefix.
 - Support for forwarding attachments (images).
 - Option to post messages to a specific thread instead of the webhook's main channel.
+- Option to monitor for and alert on specific keywords.
 - Fully configurable via `config.json`.
 - If a message is too long for the webhook to post, it will split it into multiple messages.
 
@@ -20,6 +21,15 @@ This uses a webhook, so the account being used to monitor a server does not need
 
 Webhooks on Discord are safe unlike bots, they cannot be used to read messages. They can only be used to post messages.
 
+Discord imposes a webhook rate limit of 30 messages per minute. If the bot encounters rate limits it will wait and retry. It is not advised to use this bot on extremely active servers.
+
+# Monitor Mode
+Monitor mode can be enabled by switching `monitor_mode` to `1` in the config and entering keywords to alert on.
+
+All messages will still post to the webhook, but messages with a keyword will be @mentioned. Keywords are not case sensitive.
+
+`alert_role_id` is required and will be @mentioned in the destination server.
+
 # Config
 The `config.json` file contains everything you need to setup this bot.
 
@@ -28,6 +38,8 @@ You can set multiple source channels, but only 1 thread ID and only 1 rewrite ro
 To post messages to a thread, be sure to change `use_thread` from 0 to 1.
 
 For testing, to post the last message in the channel(s), change `post_last_message_on_startup` from 0 to 1.
+
+`destination_role_id` must be set to a Role ID on the destination server. Without this you will get 400 errors.
 
 # How to get Discord Token
 This is the user token, not a bot token.

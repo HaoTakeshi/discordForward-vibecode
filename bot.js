@@ -11,6 +11,9 @@ const TARGET_THREAD_ID = config.thread_id;
 const DESTINATION_ROLE_ID = config.destination_role_id;
 const POST_LAST_MESSAGE_ON_STARTUP = config.post_last_message_on_startup;
 const USE_THREAD = config.use_thread;
+const MONITOR_MODE = config.monitor_mode;
+const KEYWORDS = config.keywords;
+const ALERT_ROLE_ID = config.alert_role_id;
 
 const client = new Client();
 
@@ -72,6 +75,11 @@ function splitMessage(content, maxLength = 2000) {
     return splitText;
 }
 
+// Sleeper
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 // Function to forward a message to the webhook
 async function forwardMessage(message, isEdit = false) {
     try {
@@ -81,6 +89,17 @@ async function forwardMessage(message, isEdit = false) {
         if (!isEdit) {
             const roleMentionRegex = /<@&\d+>/g;
             content = content.replace(roleMentionRegex, `<@&${DESTINATION_ROLE_ID}>`);
+        }
+
+        // Check for keywords if enabled
+        let alertTriggered = false;
+        if (MONITOR_MODE === 1 && message.content) {
+            alertTriggered = KEYWORDS.some(keyword =>
+                message.content.toLowerCase().includes(keyword.toLowerCase())
+            );
+            if (alertTriggered) {
+                content = `<@&${ALERT_ROLE_ID}> ` + content;
+            }
         }
 
         // Include embed details if available
@@ -105,6 +124,25 @@ async function forwardMessage(message, isEdit = false) {
             content = `**[Edited]** ${content}`;
         }
 
+        // Decide what to post to the webhook, avoiding dupes and 400s
+        let allowed_mentions;
+        if (!isEdit) {
+            let rolesAllowed = [DESTINATION_ROLE_ID];
+            if (alertTriggered && !rolesAllowed.includes(ALERT_ROLE_ID)) {
+                rolesAllowed.push(ALERT_ROLE_ID);
+            }
+            allowed_mentions = {
+                parse: [],
+                roles: rolesAllowed,
+                users: []
+            };
+        } else {
+            allowed_mentions = {
+                parse: [],
+                roles: alertTriggered ? [ALERT_ROLE_ID] : []
+            };
+        }
+
         // Split the message into chunks
         const chunks = splitMessage(content, 2000);
 
@@ -118,19 +156,30 @@ async function forwardMessage(message, isEdit = false) {
                 content: chunk,
                 username: message.author.username,
                 avatar_url: message.author.displayAvatarURL({ format: 'png', dynamic: true }),
-                allowed_mentions: isEdit
-                    ? { parse: [] } // Suppress all mentions on edits
-                    : {
-                        parse: [], // Do not parse @everyone or @here
-                        roles: [DESTINATION_ROLE_ID], // Allow mentioning only the specific destination role
-                        users: [] // No user mentions
-                    },
+                allowed_mentions: allowed_mentions,  // Use the new allowed_mentions
                 embeds: imageUrls.map(url => ({
                     image: { url } // Attach images as embeds
                 }))
             };
 
-            await axios.post(webhookURL, data);
+            // Rate limit handling
+            let posted = false;
+            while (!posted) {
+                try {
+                    await axios.post(webhookURL, data);
+                    posted = true;
+                } catch (error) {
+                    if (error.response && error.response.status === 429) {
+                        // Discord rate limit encountered. Respect the "retry_after" delay provided.
+                        const retryAfter = error.response.data?.retry_after || 1000;
+                        console.warn(`Rate limited: waiting ${retryAfter}ms before retrying.`);
+                        await sleep(retryAfter);
+                    } else {
+                        console.error(`Failed to forward message from channel ${message.channel.id}. Error: ${error}`);
+                        posted = true;
+                    }
+                }
+            }
         }
     } catch (error) {
         console.error(`Failed to forward message from channel ${message.channel.id}. Error: ${error}`);
@@ -151,6 +200,14 @@ client.on('messageCreate', async (message) => {
 // Event listener for message edits
 client.on('messageUpdate', async (oldMessage, newMessage) => {
     if (newMessage.author.id === client.user.id) return;
+
+    if (!oldMessage.partial && newMessage.content === oldMessage.content) {
+        return;
+    }
+
+    if (!newMessage.editedTimestamp || newMessage.editedTimestamp === newMessage.createdTimestamp) {
+        return;
+    }
 
     // Check if the edited message is in one of the monitored channels
     if (SOURCE_SERVER.includes(newMessage.channel.id)) {
