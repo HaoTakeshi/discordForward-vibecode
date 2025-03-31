@@ -94,9 +94,10 @@ async function forwardMessage(message, isEdit = false) {
         // Check for keywords if enabled
         let alertTriggered = false;
         if (MONITOR_MODE === 1 && message.content) {
-            alertTriggered = KEYWORDS.some(keyword =>
-                message.content.toLowerCase().includes(keyword.toLowerCase())
-            );
+            alertTriggered = KEYWORDS.some(keyword => {
+                const wordBoundaryRegex = new RegExp(`\\b${keyword}\\b`, 'i');
+                return wordBoundaryRegex.test(message.content);
+            });
             if (alertTriggered) {
                 content = `<@&${ALERT_ROLE_ID}> ` + content;
             }
