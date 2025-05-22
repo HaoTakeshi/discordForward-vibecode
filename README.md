@@ -1,4 +1,24 @@
-# Discord Forward
+# EN Description of Fork
+This is a fork of the original discordForward selfbot.
+For various reasons, the original version didn’t work for me, so I adapted and reworked the code to suit my needs.
+
+In this fork:
+
+- Automatic removal of @everyone and similar pings from forwarded messages
+- A new config parameter (ping_role_id) to automatically ping a specific role on your server
+- Code streamlined and the configuration file reformatted
+
+# RU Описание Форка
+Это форк оригинального юзербота discordForward.
+По ряду причин оригинальная версия у меня не заработала, поэтому я адаптировал и переработал код под свои нужды.
+
+В этом форке:
+
+- Автоматическое удаление пингов @everyone и подобных из пересылаемых сообщений
+- Новый параметр в конфиге (ping_role_id) для автоматического пинга нужной роли на вашем сервере
+- Сокращен код и переформатирован файл конфигурации
+
+# Discord Forward Original Description
 Forward messages from one server to another
 
 - Forward new messages from specific channels to a webhook.
