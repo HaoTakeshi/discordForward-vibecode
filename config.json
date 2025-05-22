@@ -1,12 +1,12 @@
 {
-    "token": "DISCORD_TOKEN",
-    "webhook": "WEBHOOK_URL",
-    "source_channels": ["CHANNEL_ID1", "CHANNEL_ID2"],
-    "thread_id": "THREAD_ID",
-    "destination_role_id": "REWRITE_ROLE_ID",
-    "post_last_message_on_startup": 0,
+    "token": "YOUR_DISCORD_TOKEN_HERE",
+    "webhook_url": "YOUR_DISCORD_WEBHOOK_HERE",
+    "source_channels": ["CHANNEL_ID"],
+    "thread_id": "",
+    "destination_role_id": "",
+    "post_last_message_on_startup": 1,
     "use_thread": 0,
     "monitor_mode": 0,
-    "keywords": ["enter", "your", "keywords", "here"],
-    "alert_role_id": "ALERT_ROLE_ID"
+    "keywords": [],
+    "ping_role_id": "ROLE_ID"
 }
